@@ -37,7 +37,8 @@ def main():
         t = timeit.Timer(lambda: regex_pattern.search(input))
         # re.search() is the Python equivalent for JavaScript's RegExp.prototype.test().
         # re.match() only matches the *beginning* of strings!
-        return t.timeit(number=1_000_000)
+        iterations: int = int(text_field_iterations.get("1.0", tk.END))
+        return (1_000_000_000 * t.timeit(number=iterations)) / iterations  # return result in nanoseconds per iteration
 
     def plot():
         global xs
@@ -46,7 +47,7 @@ def main():
 
         plt.title(f"Regex: {text_field_regex.get('1.0', tk.END).rstrip('\r\n')}")
         plt.xlabel("Input length")
-        plt.ylabel("Time")
+        plt.ylabel("Time [ns]")
         plt.scatter(xs, ys)
 
         destination = "tmp.png"
@@ -117,13 +118,21 @@ def main():
     text_field_input.pack(side=tk.LEFT)
 
     # Frame to hold the "Add to Plot" and "Clear Plot" buttons:
-    button_frame = tk.Frame(root)
-    button_frame.pack(pady=5)
+    frame_button = tk.Frame(root)
+    frame_button.pack(pady=5)
 
-    button_add_to_plot = tk.Button(button_frame, text="Add to Plot", command=add_to_plot)
+    button_add_to_plot = tk.Button(frame_button, text="Add to Plot", command=add_to_plot)
     button_add_to_plot.pack(side=tk.LEFT, padx=5)
 
-    button_clear_plot = tk.Button(button_frame, text="Clear Plot", command=clear_plot)
+    label_iterations = tk.Label(frame_button, text="Iterations: ", width=10)
+    label_iterations.pack(side=tk.LEFT)
+
+    text_field_iterations = tk.Text(frame_button, height=1, width=15, padx=5, pady=5)
+    text_field_iterations.pack(side=tk.LEFT)
+    text_field_iterations.delete(1.0, tk.END)
+    text_field_iterations.insert(tk.END, "1_000_000")
+
+    button_clear_plot = tk.Button(frame_button, text="Clear Plot", command=clear_plot)
     button_clear_plot.pack(side=tk.LEFT, padx=5)
 
     # The plot/image is displayed in a Label:
