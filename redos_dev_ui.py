@@ -44,7 +44,7 @@ def main():
         global ys
         global displayed_image
 
-        plt.title(f"Regex: {text_field_regex.get('1.0', tk.END)}")
+        plt.title(f"Regex: {text_field_regex.get('1.0', tk.END).rstrip('\r\n')}")
         plt.xlabel("Input length")
         plt.ylabel("Time")
         plt.scatter(xs, ys)
@@ -59,8 +59,8 @@ def main():
     def add_to_plot():
         global xs
         global ys
-        regex = text_field_regex.get("1.0", tk.END)
-        input = text_field_input.get("1.0", tk.END)
+        regex = text_field_regex.get("1.0", tk.END).rstrip("\r\n")
+        input = text_field_input.get("1.0", tk.END).rstrip("\r\n")
         x = len(input)
         y = time_regex_on_input(regex=regex, input=input)
         xs.append(x)
