@@ -13,7 +13,6 @@ displayed_image = None  # has to be global due to garbage collection
 # ToDo: allow to choose regex engine
 # ToDo: syntax highlighting / check regex for validity on typing, if invalid, show in red
 # ToDo: What if user changes regex? => Don't allow user to change regex unless cleared.
-# ToDo: add flags
 # ToDo: allow to choose between search() and match
 # ToDo: show group matches
 # ToDo: make plotted dots green on match and red on mismatch!
@@ -21,7 +20,20 @@ displayed_image = None  # has to be global due to garbage collection
 
 def main():
     def time_regex_on_input(regex, input) -> float:
-        regex_pattern = re.compile(regex)
+        # Compile pattern (with flags as specified by the user):
+        flags = 0
+        if FLAG_ASCII.get():
+            flags = flags | re.ASCII
+        if FLAG_IGNORECASE.get():
+            flags = flags | re.IGNORECASE
+        if FLAG_MULTILINE.get():
+            flags = flags | re.MULTILINE
+        if FLAG_DOTALL.get():
+            flags = flags | re.DOTALL
+        print(f"Flags: {flags}")
+        regex_pattern = re.compile(regex, flags=flags)
+
+        # Time the compiled regex on the sample input given by the user:
         t = timeit.Timer(lambda: regex_pattern.search(input))
         # re.search() is the Python equivalent for JavaScript's RegExp.prototype.test().
         # re.match() only matches the *beginning* of strings!
@@ -66,7 +78,7 @@ def main():
     root.title("ReDos Development UI")
     root.state("zoomed")
 
-    # Frame to hold the regex Label and Text:
+    # Frame to hold the regex Label, Text:
     frame_regex = tk.Frame(root)
     frame_regex.pack(padx=5, pady=5)
 
@@ -76,9 +88,27 @@ def main():
     text_field_regex = tk.Text(frame_regex, height=1, width=150, padx=5, pady=5)
     text_field_regex.pack(side=tk.LEFT)
 
+    # Frame to hold the regex Checkbuttons:
+    frame_regex_checkbuttons = tk.Frame(root)
+    frame_regex_checkbuttons.pack(padx=5, pady=5)
+
+    # Regex Checkbuttons:
+    FLAG_ASCII = tk.BooleanVar()
+    FLAG_IGNORECASE = tk.BooleanVar()
+    FLAG_MULTILINE = tk.BooleanVar()
+    FLAG_DOTALL = tk.BooleanVar()
+    checkbutton_ASCII = tk.Checkbutton(frame_regex_checkbuttons, text="ASCII (?a)", variable=FLAG_ASCII)
+    checkbutton_IGNORECASE = tk.Checkbutton(frame_regex_checkbuttons, text="IGNORECASE (?i)", variable=FLAG_IGNORECASE)
+    checkbutton_MULTILINE = tk.Checkbutton(frame_regex_checkbuttons, text="MULTILINE (?m)", variable=FLAG_MULTILINE)
+    checkbutton_DOTALL = tk.Checkbutton(frame_regex_checkbuttons, text="DOTALL (?s)", variable=FLAG_DOTALL)
+    checkbutton_ASCII.pack(side=tk.LEFT)
+    checkbutton_IGNORECASE.pack(side=tk.LEFT)
+    checkbutton_MULTILINE.pack(side=tk.LEFT)
+    checkbutton_DOTALL.pack(side=tk.LEFT)
+
     # Frame to hold the input Label and Text:
     frame_input = tk.Frame(root)
-    frame_input.pack()
+    frame_input.pack(padx=5, pady=5)
 
     label_input = tk.Label(frame_input, text="Input: ", width=10)
     label_input.pack(side=tk.LEFT)
