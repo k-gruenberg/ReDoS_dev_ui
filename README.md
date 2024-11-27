@@ -3,4 +3,4 @@ A Python GUI application for developing [ReDoS (regular expression denial of ser
 
 ![Screenshot](screenshot.png "Screenshot")
 
-**When they program hangs, you did everything right ;)**
+**When this program hangs, you did everything right ;)**
