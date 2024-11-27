@@ -14,7 +14,6 @@ displayed_image = None  # has to be global due to garbage collection
 
 # ToDo: add option for timeout
 # ToDo: allow to choose regex engine
-# ToDo: syntax highlighting / check regex for validity on typing, if invalid, show in red
 # ToDo: show group matches
 
 
@@ -111,6 +110,32 @@ def main():
         cs = []
         plot(title="")
 
+    def on_text_field_regex_change(_event):
+        # Check if the regex was actually modified:
+        if text_field_regex.edit_modified():
+            # 1. Check if the regex is valid, if not color in dark red.
+            # 2. Highlight all repetition operators ("+" and "*") in light red.
+            try:
+                regex: str = text_field_regex.get("1.0", tk.END).rstrip("\r\n")
+                re.compile(regex)
+                # Regex is valid:
+                text_field_regex.tag_delete("invalid")
+                # Highlight all repetition operators ("+" and "*")
+                text_field_regex.tag_delete("operator")
+                text_field_regex.tag_config("operator", foreground="red")
+                for i in range(len(regex)):
+                    char = regex[i]
+                    if char in ["+", "*"]:
+                        index = f"1.{i}"
+                        text_field_regex.tag_add("operator", index, index + "+1c")
+            except re.error:
+                # Regex is invalid:
+                text_field_regex.tag_config("invalid", foreground="red4")
+                text_field_regex.tag_add("invalid", f"1.0", tk.END)
+
+            # Reset the modified flag to ensure the event is triggered again:
+            text_field_regex.edit_modified(False)
+
     root = tk.Tk()
     root.title("ReDos Development UI")
     root.state("zoomed")
@@ -124,6 +149,7 @@ def main():
 
     text_field_regex = tk.Text(frame_regex, height=1, width=150, padx=5, pady=5)
     text_field_regex.pack(side=tk.LEFT)
+    text_field_regex.bind("<<Modified>>", on_text_field_regex_change)
 
     # Frame to hold the regex options:
     frame_regex_options = tk.Frame(root)
