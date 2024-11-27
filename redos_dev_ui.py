@@ -3,9 +3,11 @@ import re
 import timeit
 import matplotlib.pyplot as plt
 import sys
+from typing import Tuple, Callable
 
-xs = []
-ys = []
+xs = []  # scatter point x coordinates
+ys = []  # scatter point y coordinates
+cs = []  # scatter point colors
 
 displayed_image = None  # has to be global due to garbage collection
 
@@ -14,11 +16,21 @@ displayed_image = None  # has to be global due to garbage collection
 # ToDo: allow to choose regex engine
 # ToDo: syntax highlighting / check regex for validity on typing, if invalid, show in red
 # ToDo: show group matches
-# ToDo: make plotted dots green on match and red on mismatch!
 
 
 def main():
-    def time_regex_on_input(regex, input) -> float:
+    def time_regex_on_input(regex: str, input: str) -> Tuple[float, bool]:
+        """
+        Parameters:
+            regex: a string representing an un-compiled regular expression
+            input: the sample input string to test
+
+        Returns:
+            A tuple, consisting of:
+            1. the average number of nanoseconds each iteration took,
+            2. a boolean indicating whether the input matched the regex or not.
+        """
+
         # Compile pattern (with flags as specified by the user):
         flags = 0
         if FLAG_ASCII.get():
@@ -36,27 +48,30 @@ def main():
         print(f"Function chosen: {function_chosen.get()}")
         if function_chosen.get() == "search()":
             # re.search() is the Python equivalent for JavaScript's RegExp.prototype.test().
-            t = timeit.Timer(lambda: regex_pattern.search(input))
+            f: Callable = lambda: regex_pattern.search(input)
         elif function_chosen.get() == "match()":
             # re.match() only matches the *beginning* of strings!
-            t = timeit.Timer(lambda: regex_pattern.match(input))
+            f: Callable = lambda: regex_pattern.match(input)
         elif function_chosen.get() == "fullmatch()":
-            t = timeit.Timer(lambda: regex_pattern.fullmatch(input))
+            f: Callable = lambda: regex_pattern.fullmatch(input)
         else:
             print(f"Unknown function chosen: {function_chosen.get()}")
             sys.exit(1)
+        t = timeit.Timer(f)
         iterations: int = int(text_field_iterations.get("1.0", tk.END))
-        return (1_000_000_000 * t.timeit(number=iterations)) / iterations  # return result in nanoseconds per iteration
+        avg_time_in_ns: float = (1_000_000_000 * t.timeit(number=iterations)) / iterations  # nanoseconds per iteration
+        return avg_time_in_ns, (f() is not None)
 
     def plot(title=None):
         global xs
         global ys
+        global cs
         global displayed_image
 
         plt.title(f"Regex: {text_field_regex.get('1.0', tk.END).rstrip('\r\n')}" if title is None else title)
         plt.xlabel("Input length")
         plt.ylabel("Time [ns]")
-        plt.scatter(xs, ys)
+        plt.scatter(xs, ys, c=cs)
 
         destination = "tmp.png"
         plt.savefig(destination)
@@ -68,21 +83,24 @@ def main():
     def add_to_plot():
         global xs
         global ys
+        global cs
 
         # Lock regex input text field:
         text_field_regex.configure(state="disabled")
 
-        regex = text_field_regex.get("1.0", tk.END).rstrip("\r\n")
-        input = text_field_input.get("1.0", tk.END).rstrip("\r\n")
-        x = len(input)
-        y = time_regex_on_input(regex=regex, input=input)
+        regex: str = text_field_regex.get("1.0", tk.END).rstrip("\r\n")
+        input: str = text_field_input.get("1.0", tk.END).rstrip("\r\n")
+        x: int = len(input)
+        y, match = time_regex_on_input(regex=regex, input=input)
         xs.append(x)
         ys.append(y)
+        cs.append('g' if match else 'r')
         plot()
 
     def clear_plot():
         global xs
         global ys
+        global cs
 
         # Unlock regex input text field:
         text_field_regex.configure(state="normal")
@@ -90,6 +108,7 @@ def main():
         # Clear plot:
         xs = []
         ys = []
+        cs = []
         plot(title="")
 
     root = tk.Tk()
