@@ -137,7 +137,7 @@ def main():
             text_field_regex.edit_modified(False)
 
     root = tk.Tk()
-    root.title("ReDos Development UI")
+    root.title("ReDoS Development UI")
     root.state("zoomed")
 
     # Frame to hold the regex Label, Text:
