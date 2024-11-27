@@ -41,7 +41,7 @@ def main():
         if FLAG_DOTALL.get():
             flags = flags | re.DOTALL
         print(f"Flags: {flags}")
-        regex_pattern = re.compile(regex, flags=flags)
+        regex_pattern = re.compile(regex, flags=flags)  # | re.DEBUG
 
         # Time the compiled regex on the sample input given by the user:
         print(f"Function chosen: {function_chosen.get()}")
