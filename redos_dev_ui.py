@@ -13,7 +13,6 @@ displayed_image = None  # has to be global due to garbage collection
 # ToDo: add option for timeout
 # ToDo: allow to choose regex engine
 # ToDo: syntax highlighting / check regex for validity on typing, if invalid, show in red
-# ToDo: What if user changes regex? => Don't allow user to change regex unless cleared.
 # ToDo: show group matches
 # ToDo: make plotted dots green on match and red on mismatch!
 
@@ -49,12 +48,12 @@ def main():
         iterations: int = int(text_field_iterations.get("1.0", tk.END))
         return (1_000_000_000 * t.timeit(number=iterations)) / iterations  # return result in nanoseconds per iteration
 
-    def plot():
+    def plot(title=None):
         global xs
         global ys
         global displayed_image
 
-        plt.title(f"Regex: {text_field_regex.get('1.0', tk.END).rstrip('\r\n')}")
+        plt.title(f"Regex: {text_field_regex.get('1.0', tk.END).rstrip('\r\n')}" if title is None else title)
         plt.xlabel("Input length")
         plt.ylabel("Time [ns]")
         plt.scatter(xs, ys)
@@ -69,6 +68,10 @@ def main():
     def add_to_plot():
         global xs
         global ys
+
+        # Lock regex input text field:
+        text_field_regex.configure(state="disabled")
+
         regex = text_field_regex.get("1.0", tk.END).rstrip("\r\n")
         input = text_field_input.get("1.0", tk.END).rstrip("\r\n")
         x = len(input)
@@ -80,9 +83,14 @@ def main():
     def clear_plot():
         global xs
         global ys
+
+        # Unlock regex input text field:
+        text_field_regex.configure(state="normal")
+
+        # Clear plot:
         xs = []
         ys = []
-        plot()
+        plot(title="")
 
     root = tk.Tk()
     root.title("ReDos Development UI")
